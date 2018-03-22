@@ -16,7 +16,13 @@ void* readThread(void* vargp)
     pthread_mutex_lock(&mutexLock);
     printf("\n Inside readThread, enter a: ");
 
-    scanf("%c", &a);
+    /* change std terminal read property
+     * In raw mode, enter is not needed to
+     * finish reading character
+     */
+    system("/bin/stty raw");
+    a = getchar();
+    system("/bin/stty cooked");
 
     /* Wait until read value got printed */
     pthread_cond_wait(&cv, &mutexLock);
