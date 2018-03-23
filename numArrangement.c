@@ -17,23 +17,50 @@ pthread_cond_t cv;
 
 volatile int arr_vals[ARR_LEN][ARR_LEN] = {0,1,2,3,5,7,8,6,4};
 
+int getIdx()
+{
+  int i=0,j=0, exitLoop = 0;
+  for(i=0; i<ARR_LEN && !exitLoop; i++)
+    for(j=0; j<ARR_LEN && !exitLoop; j++)
+      if(arr_vals[i][j] == 0)
+      {
+        exitLoop = 1;
+        j--; i--;
+      }
+  return (i | j<<16);
+}
+
 void applyOP(int dir)
 {
-  if(dir == LEFT)
-  {
+  int i,j,temp;
+  int idx = getIdx();
 
+  i = idx & 0xff;
+  j = idx>>16;
+
+  if(dir == LEFT && j!= ARR_LEN-1)
+  {
+    printf("\n LEFT OPERATION ");
+    arr_vals[i][j] = arr_vals[i][j+1];
+    arr_vals[i][j+1] = 0;
   }
-  else if(dir == UP)
+  else if(dir == UP && i!= ARR_LEN-1)
   {
-
+    printf("\n UP OPERATION ");
+    arr_vals[i][j] = arr_vals[i+1][j];
+    arr_vals[i+1][j] = 0;
   }
-  else if(dir == DOWN)
+  else if(dir == DOWN && i!=0)
   {
-
+    printf("\n DOWN OPERATION ");
+    arr_vals[i][j] = arr_vals[i-1][j];
+    arr_vals[i-1][j] = 0;
   }
-  else if(dir == RIGHT)
+  else if(dir == RIGHT && j!=0)
   {
-
+    printf("\n RIGHT OPERATION ");
+    arr_vals[i][j] = arr_vals[i][j-1];
+    arr_vals[i][j-1] = 0;
   }
   else
   {
@@ -131,6 +158,9 @@ int main()
 
   pthread_mutex_init(&mutexLock, NULL);
   pthread_cond_init(&cv, NULL);
+
+  /* print array */
+  printArray();
 
   pthread_create(&readT, NULL, &readThread, NULL);
   pthread_create(&writeT, NULL, &writeThread, NULL);
