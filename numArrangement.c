@@ -4,7 +4,17 @@
 #include<string.h>
 #include<pthread.h>
 
+#define DEBUG_PRINTS
+#undef DEBUG_PRINTS
+
+#define SIDE_3
+
+#if defined(SIDE_3)
 #define ARR_LEN 3
+#elif defined(SIDE_5)
+#define ARR_LEN 5
+#endif
+
 #define UP  5
 #define DOWN 6
 #define LEFT 7
@@ -15,7 +25,11 @@ volatile int exitPrinting = 0;
 pthread_mutex_t mutexLock;
 pthread_cond_t cv;
 
+#if defined(SIDE_3)
 volatile int arr_vals[ARR_LEN][ARR_LEN] = {0,1,2,3,5,7,8,6,4};
+#elif defined(SIDE_5)
+volatile int arr_vals[ARR_LEN][ARR_LEN] = {0,1,2,3,5,7,8,6,4,9,13,11,14,12,10,18,23,24,19,17,15,16,20,22,21};
+#endif
 
 int getIdx()
 {
@@ -40,31 +54,41 @@ void applyOP(int dir)
 
   if(dir == LEFT && j!= ARR_LEN-1)
   {
+#ifdef DEBUG_PRINTS
     printf("\n LEFT OPERATION ");
+#endif
     arr_vals[i][j] = arr_vals[i][j+1];
     arr_vals[i][j+1] = 0;
   }
   else if(dir == UP && i!= ARR_LEN-1)
   {
+#ifdef DEBUG_PRINTS
     printf("\n UP OPERATION ");
+#endif
     arr_vals[i][j] = arr_vals[i+1][j];
     arr_vals[i+1][j] = 0;
   }
   else if(dir == DOWN && i!=0)
   {
+#ifdef DEBUG_PRINTS
     printf("\n DOWN OPERATION ");
+#endif
     arr_vals[i][j] = arr_vals[i-1][j];
     arr_vals[i-1][j] = 0;
   }
   else if(dir == RIGHT && j!=0)
   {
+#ifdef DEBUG_PRINTS
     printf("\n RIGHT OPERATION ");
+#endif
     arr_vals[i][j] = arr_vals[i][j-1];
     arr_vals[i][j-1] = 0;
   }
   else
   {
+#ifdef DEBUG_PRINTS
     printf("Invalid operation");
+#endif
   }
 }
 
@@ -85,14 +109,21 @@ void updateArray(char op)
     case 'd':
     case 'D': applyOP(RIGHT);
               break;
+#ifdef DEBUG_PRINTS
     default: printf("\n Invalid option \n");
+#endif
   }
 }
 
 void printArray()
 {
   int i,j;
+#ifdef DEBUG_PRINTS
   printf("\n ARRAY IS :\n");
+#endif
+  /* Clear screen */
+  printf("\033[H\033[J");
+
   for(i=0; i<ARR_LEN; i++)
   {
     for(j=0; j<ARR_LEN; j++)
@@ -108,7 +139,9 @@ void* readThread(void* vargp)
   while(1)
   {
     pthread_mutex_lock(&mutexLock);
+#ifdef DEBUG_PRINTS
     printf("\n Inside readThread, enter a: ");
+#endif
 
     /* change std terminal read property
      * In raw mode, enter is not needed to
@@ -129,7 +162,7 @@ void* readThread(void* vargp)
       return NULL;
     }
     pthread_mutex_unlock(&mutexLock);
-    usleep(700000);
+    usleep(50000); /* Sleep for 50ms */
   }
 }
 
@@ -139,8 +172,10 @@ void* writeThread(void* vargp)
   {
     pthread_mutex_lock(&mutexLock);
 
+#ifdef DEBUG_PRINTS
     printf("\n Inside writeThread : ");
     printf("%c\n",a);
+#endif
 
     updateArray(a);
     printArray();
@@ -148,7 +183,7 @@ void* writeThread(void* vargp)
     pthread_cond_signal(&cv);
 
     pthread_mutex_unlock(&mutexLock);
-    sleep(1);
+    usleep(100000); /* Sleep for 100ms */
   }
 }
 
