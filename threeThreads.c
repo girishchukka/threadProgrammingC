@@ -30,9 +30,11 @@ void* threadPrint(void* vargp)
     printf("\nMutex locked by thread = %d", localT->data);
     while(val%3 != localT->data)
     {
+      pthread_cond_signal(&cv);
       printf("\n waiting, thread = %d, val = %d", localT->data, val);
       pthread_cond_wait(&cv, &mL);
       printf("\n wokeup, thread = %d, val = %d", localT->data, val);
+      printf("\nOwner of Mutex = %d", mL.__data.__owner);
     }
 
     printf("\n printing Thread = %d, val = %d", localT->data, val);
@@ -56,7 +58,7 @@ void* threadPrint(void* vargp)
      * out the race conditions (even after this change, race
      * conditions are seen)
      */
-    usleep(100);
+    //usleep(100);
   }
 }
 
