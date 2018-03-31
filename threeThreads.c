@@ -27,46 +27,23 @@ void* threadPrint(void* vargp)
   while(1)
   {
     pthread_mutex_lock(&mL);
-    printf("\nMutex locked by thread = %d", localT->data);
     while(val%3 != localT->data)
     {
-      pthread_cond_signal(&cv);
-      printf("\n waiting, thread = %d, val = %d", localT->data, val);
       pthread_cond_wait(&cv, &mL);
-      printf("\n wokeup, thread = %d, val = %d", localT->data, val);
-      printf("\nOwner of Mutex = %d", mL.__data.__owner);
     }
 
     printf("\n printing Thread = %d, val = %d", localT->data, val);
     val++;
-    printf("\n wakeup signal from thread = %d, val=%d", localT->data, val);
-    pthread_cond_signal(&cv);
+    pthread_cond_broadcast(&cv);
     if(val>MAX_VAL)
     {
       pthread_mutex_unlock(&mL);
       return NULL;
     }
     pthread_mutex_unlock(&mL);
-    printf("\nMutex released by thread = %d", localT->data);
-
-    /* If the following sleep time is not inserted,
-     * then all values are not getting printed. Why?
-     * One change : localT->data is declared as non volatile
-     * So, code is using stale data (read in another
-     * thread). Declaring threadInfo.data as volatile
-     * forces the CPU to read everytime which rules
-     * out the race conditions (even after this change, race
-     * conditions are seen)
-     */
-    //usleep(100);
   }
 }
 
-/* This program has race condition
- * Compile this code and run executable in loop
- * at one point it is getting stuck
- * Need to root cause it and fix it
- */
 int main()
 {
   int i, val=0;
